@@ -1,6 +1,6 @@
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.util.regex.*;
+import java.util.stream.*;
 
 class Bogie {
     private String type;
@@ -52,17 +52,8 @@ public class TrainConsistManagementApp {
         Matcher trainMatcher = trainPattern.matcher(trainId);
         Matcher cargoMatcher = cargoPattern.matcher(cargoCode);
 
-        if (trainMatcher.matches()) {
-            System.out.println("Valid Train ID");
-        } else {
-            System.out.println("Invalid Train ID");
-        }
-
-        if (cargoMatcher.matches()) {
-            System.out.println("Valid Cargo Code");
-        } else {
-            System.out.println("Invalid Cargo Code");
-        }
+        System.out.println(trainMatcher.matches() ? "Valid Train ID" : "Invalid Train ID");
+        System.out.println(cargoMatcher.matches() ? "Valid Cargo Code" : "Invalid Cargo Code");
 
         // 🔹 UC12: Bogie Safety Validation
         List<Bogie> bogies = Arrays.asList(
@@ -74,11 +65,37 @@ public class TrainConsistManagementApp {
 
         boolean isSafe = BogieValidator.isTrainSafe(bogies);
 
-        if (isSafe) {
-            System.out.println("Train is SAFE and compliant.");
-        } else {
-            System.out.println("Train is NOT SAFE!");
+        System.out.println(isSafe ?
+                "Train is SAFE and compliant." :
+                "Train is NOT SAFE!");
+
+        // 🔹 UC13: Performance Comparison
+
+        // Loop-based
+        long startLoop = System.nanoTime();
+
+        List<Bogie> loopResult = new ArrayList<>();
+        for (Bogie b : bogies) {
+            if (b.getCargo().equalsIgnoreCase("Petroleum")) {
+                loopResult.add(b);
+            }
         }
+
+        long endLoop = System.nanoTime();
+        long loopTime = endLoop - startLoop;
+
+        // Stream-based
+        long startStream = System.nanoTime();
+
+        List<Bogie> streamResult = bogies.stream()
+                .filter(b -> b.getCargo().equalsIgnoreCase("Petroleum"))
+                .collect(Collectors.toList());
+
+        long endStream = System.nanoTime();
+        long streamTime = endStream - startStream;
+
+        System.out.println("Loop Time: " + loopTime + " ns");
+        System.out.println("Stream Time: " + streamTime + " ns");
 
         sc.close();
     }
