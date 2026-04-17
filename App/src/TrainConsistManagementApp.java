@@ -1,101 +1,68 @@
 import java.util.*;
-import java.util.regex.*;
-import java.util.stream.*;
 
-class Bogie {
-    private String type;
-    private String cargo;
-
-    public Bogie(String type, String cargo) {
-        this.type = type;
-        this.cargo = cargo;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getCargo() {
-        return cargo;
+// 🔹 Custom Exception
+class InvalidCapacityException extends Exception {
+    public InvalidCapacityException(String message) {
+        super(message);
     }
 }
 
-class BogieValidator {
-    public static boolean isTrainSafe(List<Bogie> bogies) {
-        return bogies.stream()
-                .allMatch(b ->
-                        !b.getType().equalsIgnoreCase("Cylindrical")
-                                || b.getCargo().equalsIgnoreCase("Petroleum")
-                );
+// 🔹 Passenger Bogie
+class PassengerBogie {
+    private int capacity;
+
+    public PassengerBogie(int capacity) throws InvalidCapacityException {
+        if (capacity <= 0) {
+            throw new InvalidCapacityException("Capacity must be greater than 0!");
+        }
+        this.capacity = capacity;
+    }
+
+    public int getCapacity() {
+        return capacity;
     }
 }
 
+// 🔹 Train Consist (holds bogies)
+class TrainConsist {
+    private List<PassengerBogie> passengerBogies = new ArrayList<>();
+
+    public void addPassengerBogie(int capacity) {
+        try {
+            PassengerBogie bogie = new PassengerBogie(capacity);
+            passengerBogies.add(bogie);
+            System.out.println("Passenger bogie added successfully with capacity: " + capacity);
+        } catch (InvalidCapacityException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void displayBogies() {
+        System.out.println("Passenger Bogies in Train:");
+        for (PassengerBogie b : passengerBogies) {
+            System.out.println("Capacity: " + b.getCapacity());
+        }
+    }
+}
+
+// 🔹 Main Application
 public class TrainConsistManagementApp {
 
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
+        TrainConsist train = new TrainConsist();
 
-        // 🔹 UC11: Regex Validation
-        System.out.print("Enter Train ID: ");
-        String trainId = sc.nextLine();
+        System.out.print("Enter number of passenger bogies: ");
+        int n = sc.nextInt();
 
-        System.out.print("Enter Cargo Code: ");
-        String cargoCode = sc.nextLine();
-
-        String trainRegex = "TRN-\\d{4}";
-        String cargoRegex = "PET-[A-Z]{2}";
-
-        Pattern trainPattern = Pattern.compile(trainRegex);
-        Pattern cargoPattern = Pattern.compile(cargoRegex);
-
-        Matcher trainMatcher = trainPattern.matcher(trainId);
-        Matcher cargoMatcher = cargoPattern.matcher(cargoCode);
-
-        System.out.println(trainMatcher.matches() ? "Valid Train ID" : "Invalid Train ID");
-        System.out.println(cargoMatcher.matches() ? "Valid Cargo Code" : "Invalid Cargo Code");
-
-        // 🔹 UC12: Bogie Safety Validation
-        List<Bogie> bogies = Arrays.asList(
-                new Bogie("Cylindrical", "Petroleum"),
-                new Bogie("Open", "Coal"),
-                new Bogie("Cylindrical", "Petroleum"),
-                new Bogie("Box", "Grain")
-        );
-
-        boolean isSafe = BogieValidator.isTrainSafe(bogies);
-
-        System.out.println(isSafe ?
-                "Train is SAFE and compliant." :
-                "Train is NOT SAFE!");
-
-        // 🔹 UC13: Performance Comparison
-
-        // Loop-based
-        long startLoop = System.nanoTime();
-
-        List<Bogie> loopResult = new ArrayList<>();
-        for (Bogie b : bogies) {
-            if (b.getCargo().equalsIgnoreCase("Petroleum")) {
-                loopResult.add(b);
-            }
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter capacity for bogie " + (i + 1) + ": ");
+            int capacity = sc.nextInt();
+            train.addPassengerBogie(capacity);
         }
 
-        long endLoop = System.nanoTime();
-        long loopTime = endLoop - startLoop;
-
-        // Stream-based
-        long startStream = System.nanoTime();
-
-        List<Bogie> streamResult = bogies.stream()
-                .filter(b -> b.getCargo().equalsIgnoreCase("Petroleum"))
-                .collect(Collectors.toList());
-
-        long endStream = System.nanoTime();
-        long streamTime = endStream - startStream;
-
-        System.out.println("Loop Time: " + loopTime + " ns");
-        System.out.println("Stream Time: " + streamTime + " ns");
+        train.displayBogies();
 
         sc.close();
     }
